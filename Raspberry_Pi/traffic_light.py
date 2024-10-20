@@ -1,7 +1,40 @@
-from gpiozero import LED, TrafficLights
+from gpiozero import TrafficLights
 from time import sleep
+import requests
 
-# Option 1: With Three Different LEDs
+key = "YOUR_KEY"
+
+def updateData(status, field):
+    x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&" + field + "=" + status)
+    if (x.status_code == 200):
+        print(f"Status: {status}, Field: {field}")
+        print(F"Entry: "+ x.text)
+    else:
+        print(f"Failed to update Field {field}, Status: {status}, Response: {x.status_code}")
+
+if __name__ == "__main__":
+    # Option 1: With TrafficLights
+    lights = TrafficLights(25, 8, 7)
+    while True:
+        # Red light on and off with delay for ThingSpeak rate limit
+        lights.red.on(); updateData("1", "field1")
+        sleep(30)
+        lights.red.off(); updateData("0", "field1")
+        sleep(15)  # thingspeak needs 15 secs between requests?
+        
+        # Green light on and off
+        lights.green.on(); updateData("1", "field2")
+        sleep(30)
+        lights.green.off(); updateData("0", "field2")
+        sleep(15)  # thingspeak needs 15 secs between requests?
+        
+        # Amber light on and off with a proper delay
+        lights.amber.on(); updateData("1", "field3")
+        sleep(20)
+        lights.amber.off(); updateData("0", "field3")
+        sleep(15)  # thingspeak needs 15 secs between requests?
+
+# Option 2: With Three Different LEDs
 # red = LED(25)
 # yellow = LED(8)
 # green = LED(7)
@@ -15,16 +48,3 @@ from time import sleep
 #         else:
 #             sleep(30)
 #         led.off()
-
-# Option 2: With TrafficLights
-lights = TrafficLights(25, 8, 7)
-while True:
-    lights.red.on()
-    sleep(30)
-    lights.red.off()
-    lights.green.on()
-    sleep(30)
-    lights.green.off()
-    lights.amber.on()
-    sleep(20)
-    lights.off()
