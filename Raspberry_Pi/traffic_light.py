@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Option 1: With TrafficLights
     lights = TrafficLights(25, 8, 7)
     while True:
-        # Red light on and off with delay for ThingSpeak rate limit
+        # Red light on and off 
         lights.red.on(); updateData("1", "field1")
         sleep(30)
         lights.red.off(); updateData("0", "field1")
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         lights.green.off(); updateData("0", "field2")
         sleep(15)  # thingspeak needs 15 secs between requests?
         
-        # Amber light on and off with a proper delay
+        # Amber light on and off
         lights.amber.on(); updateData("1", "field3")
         sleep(20)
         lights.amber.off(); updateData("0", "field3")
