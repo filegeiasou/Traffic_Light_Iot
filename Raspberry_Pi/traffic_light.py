@@ -6,20 +6,25 @@ from time import sleep
 # yellow = LED(8)
 # green = LED(7)
 
-# leds = [red, yellow, green]
+# leds = [red, green, yellow]
 # while True:
 #     for led in leds:
 #         led.on()
-#         sleep(2)
+#         if (led == yellow):
+#             sleep(20)
+#         else:
+#             sleep(30)
 #         led.off()
 
 # Option 2: With TrafficLights
 lights = TrafficLights(25, 8, 7)
 while True:
-    lights.green.on()
-    sleep(1)
-    lights.amber.on()
-    sleep(1)
     lights.red.on()
-    sleep(1)
+    sleep(30)
+    lights.red.off()
+    lights.green.on()
+    sleep(30)
+    lights.green.off()
+    lights.amber.on()
+    sleep(20)
     lights.off()
