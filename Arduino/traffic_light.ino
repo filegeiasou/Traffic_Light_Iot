@@ -2,11 +2,8 @@ String ssid = "Simulator Wifi";
 String password = "";
 String host = "api.thingspeak.com";
 const int httpPort = 80;
-
-// ThingSpeak API URIs
-String greenUri = "/update?api_key=YOUR_API_KEY&field1=";
-String orangeUri = "/update?api_key=YOUR_API_KEY&field2=";
-String redUri = "/update?api_key=YOUR_API_KEY&field3=";
+String api = "YOUR_API_KEY";
+String url = "/update?api_key=" + api + "&field";
 
 // LED pin setup (adjust according to your pinout)
 int greenLED = 10; // Pin for green LED
@@ -50,7 +47,7 @@ void sendData(String uri) {
   String httpPacket = "GET " + uri + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
   int lenght = httpPacket.length();
   
-   Serial.print("AT+CIPSEND=");
+  Serial.print("AT+CIPSEND=");
   Serial.println(lenght);
   delay(10);
   
@@ -86,21 +83,21 @@ void setup() {
 
 void loop() {
   // Simulate traffic light control
+  controlTrafficLight("red");
+  sendData(url + "1=1"); // Send green status to ThingSpeak
+  sendData(url + "2=0");
+  sendData(url + "3=0");
+  delay(5000);
+
   controlTrafficLight("green");
-  sendData(greenUri + "1"); // Send green status to ThingSpeak
-  sendData(orangeUri + "0");
-  sendData(redUri + "0");
+  sendData(url + "1=0"); // Send green status to ThingSpeak
+  sendData(url + "2=0");
+  sendData(url + "3=1");
   delay(5000);
 
   controlTrafficLight("orange");
-  sendData(orangeUri + "1"); // Send orange status to ThingSpeak
-  sendData(greenUri + "0");
-  sendData(redUri + "0");
+  sendData(url + "1=1"); // Send green status to ThingSpeak
+  sendData(url + "2=0");
+  sendData(url + "3=0");
   delay(2000);
-
-  controlTrafficLight("red");
-  sendData(redUri + "1"); // Send red status to ThingSpeak
-  sendData(orangeUri + "0");
-  sendData(greenUri + "0");
-  delay(5000);
 }
