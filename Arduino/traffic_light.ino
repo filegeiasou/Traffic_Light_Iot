@@ -2,7 +2,8 @@ String ssid = "Simulator Wifi";
 String password = "";
 String host = "api.thingspeak.com";
 const int httpPort = 80;
-String api = "YOUR_API_KEY";
+String Traffic_Light_api = ""; // Traffic Api Key
+String B_part_api = "";
 
 // LED pin setup (adjust according to your pinout)
 int greenLED = 10; // Pin for green LED
@@ -47,13 +48,30 @@ void setup() {
   pinMode(redLED, OUTPUT);
   
   setupESP8266();
+  setField8("0", B_part_api);
+  setField8("0", Traffic_Light_api);
+}
+
+void setField8(String value, String api) {
+  // Construct and send the HTTP GET request
+  String url = "/update?api_key=" + api + "&field8=" + value;
+  String httpPacket = "GET " + url + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
+  int length = httpPacket.length();
+  
+  Serial.print("AT+CIPSEND=");
+  Serial.println(length);
+  delay(10);
+  
+  Serial.print(httpPacket);
+  delay(10);
+  if(!Serial.find("SEND OK\r\n")) return;
 }
 
 // Thingspeak: Field1 = Green, Field2 = Orange, Field3 = Red
 void sendData(String green, String orange, String red) {
 
   // Construct and send the HTTP GET request
-  String url = "/update?api_key=" + api + "&field1=" + green + "&field2=" + orange + "&field3=" + red;
+  String url = "/update?api_key=" + Traffic_Light_api + "&field1=" + green + "&field2=" + orange + "&field3=" + red;
   String httpPacket = "GET " + url + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
   int length = httpPacket.length();
   
