@@ -54,7 +54,7 @@ void sendData(String green, String orange, String red) {
 
   // Construct and send the HTTP GET request
   String url = "/update?api_key=" + api + "&field1=" + green + "&field2=" + orange + "&field3=" + red;
-  String httpPacket = "GET " + uri + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
+  String httpPacket = "GET " + url + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
   int length = httpPacket.length();
   
   Serial.print("AT+CIPSEND=");
