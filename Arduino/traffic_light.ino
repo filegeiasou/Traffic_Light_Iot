@@ -3,7 +3,6 @@ String password = "";
 String host = "api.thingspeak.com";
 const int httpPort = 80;
 String api = "YOUR_API_KEY";
-String url = "/update?api_key=" + api + "&field";
 
 // LED pin setup (adjust according to your pinout)
 int greenLED = 10; // Pin for green LED
@@ -41,14 +40,25 @@ int setupESP8266(void){
   return 0; // Success
 }
 
-void sendData(String uri) {
+void setup() {
+  // Setup the ESP8266 and LEDs
+  pinMode(greenLED, OUTPUT);
+  pinMode(orangeLED, OUTPUT);
+  pinMode(redLED, OUTPUT);
+  
+  setupESP8266();
+}
+
+// Thingspeak: Field1 = Green, Field2 = Orange, Field3 = Red
+void sendData(String green, String orange, String red) {
 
   // Construct and send the HTTP GET request
+  String url = "/update?api_key=" + api + "&field1=" + green + "&field2=" + orange + "&field3=" + red;
   String httpPacket = "GET " + uri + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
-  int lenght = httpPacket.length();
+  int length = httpPacket.length();
   
   Serial.print("AT+CIPSEND=");
-  Serial.println(lenght);
+  Serial.println(length);
   delay(10);
   
   Serial.print(httpPacket);
@@ -72,32 +82,17 @@ void controlTrafficLight(String state) {
   }
 }
 
-void setup() {
-  // Setup the ESP8266 and LEDs
-  pinMode(greenLED, OUTPUT);
-  pinMode(orangeLED, OUTPUT);
-  pinMode(redLED, OUTPUT);
-  
-  setupESP8266();
-}
-
 void loop() {
   // Simulate traffic light control
   controlTrafficLight("red");
-  sendData(url + "1=1"); // Send green status to ThingSpeak
-  sendData(url + "2=0");
-  sendData(url + "3=0");
+  sendData("0", "0", "1");
   delay(5000);
 
   controlTrafficLight("green");
-  sendData(url + "1=0"); // Send green status to ThingSpeak
-  sendData(url + "2=0");
-  sendData(url + "3=1");
+  sendData("1", "0", "0");
   delay(5000);
 
   controlTrafficLight("orange");
-  sendData(url + "1=1"); // Send green status to ThingSpeak
-  sendData(url + "2=0");
-  sendData(url + "3=0");
+  sendData("0", "1", "0");
   delay(2000);
 }
