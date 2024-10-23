@@ -14,9 +14,9 @@ def updateData(redStatus, greenStatus, amberStatus):
 
 if __name__ == "__main__":
     # Option 1: With TrafficLights
-    lights = TrafficLights(25, 8, 7)
+    lights = TrafficLights(7, 8, 25) # Red, Amber, Green
     while True:
-        # Red light on and off with delay for ThingSpeak rate limit
+        # Red light on and off
         lights.red.on()
         updateData("1", "0", "0")
         sleep(30)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         updateData("0", "1", "0")
         sleep(30)
         
-        # Amber light on and off with a proper delay
+        # Amber light on and off
         lights.green.off()
         lights.amber.on()
         updateData("0", "0", "1")
@@ -35,9 +35,9 @@ if __name__ == "__main__":
         lights.amber.off()
 
 # Option 2: With Three Different LEDs
-# red = LED(25)
+# red = LED(7)
 # yellow = LED(8)
-# green = LED(7)
+# green = LED(25)
 
 # leds = [red, green, yellow]
 # while True:
