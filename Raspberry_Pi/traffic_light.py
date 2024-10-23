@@ -2,37 +2,37 @@ from gpiozero import TrafficLights
 from time import sleep
 import requests
 
-key = "YOUR_KEY"
+key = "R1LCUDBNUIP9GOW3"
 
-def updateData(status, field):
-    x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&" + field + "=" + status)
+def updateData(redStatus, greenStatus, amberStatus):
+    x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&field1=" + redStatus + "&field2=" + greenStatus + "&field3=" + amberStatus)
     if (x.status_code == 200):
-        print(f"Status: {status}, Field: {field}")
+        print(f"Red: {redStatus}, Yellow: {amberStatus}, Red: {redStatus}")
         print(F"Entry: "+ x.text)
     else:
-        print(f"Failed to update Field {field}, Status: {status}, Response: {x.status_code}")
+        print(f"Failed to update, Response: {x.status_code}")
 
 if __name__ == "__main__":
     # Option 1: With TrafficLights
     lights = TrafficLights(25, 8, 7)
     while True:
-        # Red light on and off 
-        lights.red.on(); updateData("1", "field1")
+        # Red light on and off
+        lights.red.on()
+        updateData("1", "0", "0")
         sleep(30)
-        lights.red.off(); updateData("0", "field1")
-        sleep(15)  # thingspeak needs 15 secs between requests?
         
         # Green light on and off
-        lights.green.on(); updateData("1", "field2")
+        lights.red.off()
+        lights.green.on()
+        updateData("0", "1", "0")
         sleep(30)
-        lights.green.off(); updateData("0", "field2")
-        sleep(15)  # thingspeak needs 15 secs between requests?
         
         # Amber light on and off
-        lights.amber.on(); updateData("1", "field3")
+        lights.green.off()
+        lights.amber.on()
+        updateData("0", "0", "1")
         sleep(20)
-        lights.amber.off(); updateData("0", "field3")
-        sleep(15)  # thingspeak needs 15 secs between requests?
+        lights.amber.off()
 
 # Option 2: With Three Different LEDs
 # red = LED(25)
