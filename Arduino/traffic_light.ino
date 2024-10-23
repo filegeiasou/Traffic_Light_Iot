@@ -67,32 +67,33 @@ void sendData(String green, String orange, String red) {
 }
 
 void controlTrafficLight(String state) {
-  if (state == "green") {
-    digitalWrite(greenLED, HIGH);
+  if(state == "red"){
+    digitalWrite(greenLED, LOW);
     digitalWrite(orangeLED, LOW);
-    digitalWrite(redLED, LOW);
+    digitalWrite(redLED, HIGH);
   } else if (state == "orange") {
     digitalWrite(greenLED, LOW);
     digitalWrite(orangeLED, HIGH);
     digitalWrite(redLED, LOW);
-  } else if (state == "red") {
-    digitalWrite(greenLED, LOW);
+  } else if (state == "green") {
+    digitalWrite(greenLED, HIGH);
     digitalWrite(orangeLED, LOW);
-    digitalWrite(redLED, HIGH);
+    digitalWrite(redLED, LOW);
   }
+  
 }
 
 void loop() {
   // Simulate traffic light control
   controlTrafficLight("red");
   sendData("0", "0", "1");
-  delay(5000);
+  delay(20000);
 
   controlTrafficLight("green");
   sendData("1", "0", "0");
-  delay(5000);
+  delay(20000);
 
   controlTrafficLight("orange");
   sendData("0", "1", "0");
-  delay(2000);
+  delay(15000);
 }
