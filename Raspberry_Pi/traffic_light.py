@@ -2,7 +2,7 @@ from gpiozero import TrafficLights
 from time import sleep
 import requests
 
-key = "YoUR_API_KEY"
+key = "YOUR_API_KEY"
 
 def updateData(redStatus, greenStatus, amberStatus):
     x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&field1=" + redStatus + "&field2=" + greenStatus + "&field3=" + amberStatus)
