@@ -2,12 +2,17 @@ from gpiozero import TrafficLights
 from time import sleep
 import requests
 
-key = "YOUR_API_KEY"
+key = "R1LCUDBNUIP9GOW3"
 
 def updateData(redStatus, greenStatus, amberStatus):
     x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&field1=" + greenStatus + "&field2=" + amberStatus + "&field3=" + redStatus)
     if (x.status_code == 200):
-        print(f"Red: {redStatus}, Yellow: {amberStatus}, Green: {greenStatus}")
+        if (redStatus == "1"):
+            print("Red Light: On")
+        elif (greenStatus == "1"):
+            print("Green Light: On")
+        elif (amberStatus == "1"):
+            print("Amber Light: On")
         print(F"Entry: "+ x.text)
     else:
         print(f"Failed to update, Response: {x.status_code}")
