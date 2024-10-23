@@ -5,7 +5,7 @@ import requests
 key = "YOUR_API_KEY"
 
 def updateData(redStatus, greenStatus, amberStatus):
-    x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&field1=" + redStatus + "&field2=" + greenStatus + "&field3=" + amberStatus)
+    x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&field1=" + greenStatus + "&field2=" + amberStatus + "&field3=" + redStatus)
     if (x.status_code == 200):
         print(f"Red: {redStatus}, Yellow: {amberStatus}, Green: {greenStatus}")
         print(F"Entry: "+ x.text)
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Option 1: With TrafficLights
     lights = TrafficLights(25, 8, 7)
     while True:
-        # Red light on and off
+        # Red light on and off with delay for ThingSpeak rate limit
         lights.red.on()
         updateData("1", "0", "0")
         sleep(30)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         updateData("0", "1", "0")
         sleep(30)
         
-        # Amber light on and off
+        # Amber light on and off with a proper delay
         lights.green.off()
         lights.amber.on()
         updateData("0", "0", "1")
