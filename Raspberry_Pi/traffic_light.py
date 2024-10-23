@@ -7,7 +7,7 @@ key = "R1LCUDBNUIP9GOW3"
 def updateData(redStatus, greenStatus, amberStatus):
     x = requests.get(f"https://api.thingspeak.com/update?api_key=" + key + "&field1=" + redStatus + "&field2=" + greenStatus + "&field3=" + amberStatus)
     if (x.status_code == 200):
-        print(f"Red: {redStatus}, Yellow: {amberStatus}, Red: {redStatus}")
+        print(f"Red: {redStatus}, Yellow: {amberStatus}, Green: {greenStatus}")
         print(F"Entry: "+ x.text)
     else:
         print(f"Failed to update, Response: {x.status_code}")
