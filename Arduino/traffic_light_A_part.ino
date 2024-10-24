@@ -2,7 +2,7 @@ String ssid = "Simulator Wifi";
 String password = "";
 String host = "api.thingspeak.com";
 const int httpPort = 80;
-String api = "R1LCUDBNUIP9GOW3"; // Traffic Api Key
+String api = ""; // Traffic Api Key
 
 // LED pin setup (adjust according to your pinout)
 int greenLED = 10; // Pin for green LED
