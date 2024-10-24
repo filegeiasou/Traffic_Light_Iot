@@ -98,7 +98,6 @@ void controlTrafficLight(String state) {
     digitalWrite(orangeLED, LOW);
     digitalWrite(redLED, LOW);
   }
-  
 }
 
 void loop() {
