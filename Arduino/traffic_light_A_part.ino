@@ -45,6 +45,7 @@ void setup() {
   pinMode(greenLED, OUTPUT);
   pinMode(orangeLED, OUTPUT);
   pinMode(redLED, OUTPUT);
+  setupESP8266();
 }
 
 // Thingspeak: Field1 = Green, Field2 = Orange, Field3 = Red
