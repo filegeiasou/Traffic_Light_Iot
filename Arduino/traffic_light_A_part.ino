@@ -1,8 +1,8 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Tsomi";
-const char* password = "sidarta123";
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_PASSWORD";
 String api = "RVYMKEOS5DUCTSNQ"; // Traffic Api Key
 
 // LED pin setup (adjust according to your pinout)
