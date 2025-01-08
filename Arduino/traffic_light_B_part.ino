@@ -1,12 +1,12 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Tsomi";
-const char* password = "sidarta123";
-String api = "RVYMKEOS5DUCTSNQ"; // Traffic Api Key
-String sec_api = "NNF1B9GGD4OMXA1M";
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_PASSWORD";
+String api = "RVYMKEOS5DUCTSNQ"; // Main Thingspeak Channel API Key
+String sec_api = "NNF1B9GGD4OMXA1M"; // Secondary Thingspeak Channel API Key
 
-// LED pin setup (adjust according to your pinout)
+// LED pin setup
 int greenLED = 14;  // Pin for green LED
 int yellowLED = 12; // Pin for orange LED
 int redLED = 13;   // Pin for red LED
