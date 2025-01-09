@@ -69,13 +69,13 @@ void loop() {
   // Simulate traffic light control
   controlTrafficLight("red");
   sendData("0", "0", "1");
-  delay(20000);
+  delay(30000);
 
   controlTrafficLight("green");
   sendData("1", "0", "0");
-  delay(20000);
+  delay(30000);
 
   controlTrafficLight("orange");
   sendData("0", "1", "0");
-  delay(15000);
+  delay(20000);
 }

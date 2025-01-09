@@ -3,8 +3,8 @@
 
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_PASSWORD";
-String api = "YOUR_API"; // Write Thingspeak Channel API Key
-String sec_api = "YOUR_SEC_API"; // Read Thingspeak Channel API Key
+String api = "YOUR_WRITE_API_KEY"; // Write Thingspeak Channel API Key
+String sec_api = "OTHER_WRITE_API_KEY"; // Write Thingspeak Channel API Key for the other app
 
 // LED pin setup
 int greenLED = 14;  // Pin for green LED
@@ -26,6 +26,7 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("\nConnected to WiFi");
+  // Set field8 to 0 for both channels
   setField8("0", sec_api);
   setField8("0", api);
 }
@@ -179,15 +180,15 @@ void loop() {
     if (currentTime - lastCycleUpdate >= 20000) {  // 20 seconds per light
       controlTrafficLight("red");
       sendData("0", "0", "1");  // Send data for red light
-      delay(20000);
+      delay(30000);
 
       controlTrafficLight("green");
       sendData("1", "0", "0");  // Send data for green light
-      delay(20000);
+      delay(30000);
 
       controlTrafficLight("orange");
       sendData("0", "1", "0");  // Send data for orange light
-      delay(15000);
+      delay(20000);
 
       lastCycleUpdate = currentTime;  // Update the last cycle time
     }
