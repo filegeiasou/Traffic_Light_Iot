@@ -26,6 +26,7 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("\nConnected to WiFi");
+  // Set field8 to 0 for both channels
   setField8("0", sec_api);
   setField8("0", api);
 }
@@ -92,20 +93,16 @@ void controlTrafficLight(String state) {
 }
 
 void loop() {
-
-  setField8("0", sec_api); // Set Field 8 of other channel to 0
-  setField8("0", api); // set Field 8 of our channel to 0
-
   // Simulate traffic light control
   controlTrafficLight("red");
   sendData("0", "0", "1");
-  delay(20000);
+  delay(30000);
 
   controlTrafficLight("green");
   sendData("1", "0", "0");
-  delay(20000);
+  delay(30000);
 
   controlTrafficLight("orange");
   sendData("0", "1", "0");
-  delay(15000);
+  delay(20000);
 }
