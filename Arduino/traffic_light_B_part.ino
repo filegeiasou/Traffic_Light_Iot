@@ -3,8 +3,8 @@
 
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_PASSWORD";
-String api = "RVYMKEOS5DUCTSNQ"; // Main Thingspeak Channel API Key
-String sec_api = "NNF1B9GGD4OMXA1M"; // Secondary Thingspeak Channel API Key
+String api = "YOUR_WRITE_API_KEY"; // Write Thingspeak Channel API Key
+String sec_api = "OTHER_WRITE_API_KEY"; // Write Thingspeak Channel API Key for the other app
 
 // LED pin setup
 int greenLED = 14;  // Pin for green LED
@@ -51,6 +51,7 @@ void sendData(String green, String orange, String red) {
     Serial.println("WiFi Disconnected");
   }
 }
+
 void setField8(String value, String api) {
   // Construct and send the HTTP GET request
   String url = "http://api.thingspeak.com/update?api_key=" + api + "&field8=" + value;
@@ -91,6 +92,10 @@ void controlTrafficLight(String state) {
 }
 
 void loop() {
+
+  setField8("0", sec_api); // Set Field 8 of other channel to 0
+  setField8("0", api); // set Field 8 of our channel to 0
+
   // Simulate traffic light control
   controlTrafficLight("red");
   sendData("0", "0", "1");
