@@ -1,12 +1,12 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Tsomi";
-const char* password = "sidarta123";
-String api = "RVYMKEOS5DUCTSNQ"; // Traffic Api Key
-String sec_api = "NNF1B9GGD4OMXA1M";
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_PASSWORD";
+String api = "YOUR_WRITE_API_KEY"; // Write Thingspeak Channel API Key
+String sec_api = "OTHER_WRITE_API_KEY"; // Write Thingspeak Channel API Key for the other app
 
-// LED pin setup (adjust according to your pinout)
+// LED pin setup
 int greenLED = 14;  // Pin for green LED
 int yellowLED = 12; // Pin for orange LED
 int redLED = 13;   // Pin for red LED
@@ -51,6 +51,7 @@ void sendData(String green, String orange, String red) {
     Serial.println("WiFi Disconnected");
   }
 }
+
 void setField8(String value, String api) {
   // Construct and send the HTTP GET request
   String url = "http://api.thingspeak.com/update?api_key=" + api + "&field8=" + value;
@@ -91,6 +92,10 @@ void controlTrafficLight(String state) {
 }
 
 void loop() {
+
+  setField8("0", sec_api); // Set Field 8 of other channel to 0
+  setField8("0", api); // set Field 8 of our channel to 0
+
   // Simulate traffic light control
   controlTrafficLight("red");
   sendData("0", "0", "1");

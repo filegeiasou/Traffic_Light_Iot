@@ -3,9 +3,9 @@
 
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_PASSWORD";
-String api = "RVYMKEOS5DUCTSNQ"; // Traffic Api Key
+String api = "YOUR_API_KEY"; // Write Thingspeak Channel API Key
 
-// LED pin setup (adjust according to your pinout)
+// LED pin setup
 int greenLED = 14;  // Pin for green LED
 int yellowLED = 12; // Pin for orange LED
 int redLED = 13;   // Pin for red LED
