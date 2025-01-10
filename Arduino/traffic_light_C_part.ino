@@ -2,195 +2,175 @@
 #include <HTTPClient.h>
 
 const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_PASSWORD";
-String api = "YOUR_WRITE_API_KEY"; // Write Thingspeak Channel API Key
-String sec_api = "OTHER_WRITE_API_KEY"; // Write Thingspeak Channel API Key for the other app
+const char* password = "YOUR_WIFI_PASSWORD";
+String api = "YOUR_WRITE_API_KEY";          // Write Thingspeak Channel API Key
+String read_api_key = "YOUR_READ_API_KEY";  // Read API key for ThingSpeak
+String channel_id = "YOUR_CHANNEL_ID";      // Channel ID for ThingSpeak
 
-// LED pin setup
-int greenLED = 14;  // Pin for green LED
-int yellowLED = 12; // Pin for orange LED
-int redLED = 13;   // Pin for red LED
+// LED Pins
+int greenLED = 14;
+int yellowLED = 12;
+int redLED = 13;
+
+// Traffic light durations
+unsigned long redTime = 30000;       // Red light duration time
+unsigned long greenTime = 30000;     // Green light duration time
+unsigned long orangeTime = 20000;    // Orange light duration time
+unsigned long alertDuration = 20000; // Alert mode duration
+
+// Variables
+unsigned long previousMillis = 0;        // Tracks last light change
+unsigned long alertStartTime = 0;        // Tracks start of alert mode
+unsigned long lastField8Update = 0;      // Last field8 update time
+unsigned long lastCheckMillis = 0;       // Last ThingSpeak check time
+unsigned long checkInterval = 5000;      // Check ThingSpeak Read Channel every 5 seconds
+unsigned long previousUpdateMillis = 0;  // Update interval (every 10 minutes)
+unsigned long updateInterval = 60000;    // Update interval (every 1 minute)
+int currentLight = 0;                    // 0 = Red, 1 = Green, 2 = Orange
+bool alertMode = false;                  // Alert mode state status
 
 void setup() {
   Serial.begin(115200);
-  // Set up LED pins
+
+  // Setup LED pins
   pinMode(greenLED, OUTPUT);
   pinMode(yellowLED, OUTPUT);
   pinMode(redLED, OUTPUT);
 
-  WiFi.begin(ssid,password);
-  Serial.print("Connecting to WiFi...");
-  
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
   }
-  Serial.println("\nConnected to WiFi");
-  // Set field8 to 0 for both channels
-  setField8("0", sec_api);
-  setField8("0", api);
-}
+  Serial.println("\nWiFi Connected");
 
-void sendData(String green, String orange, String red) {
-  String url = "http://api.thingspeak.com/update?api_key=" + api + "&field1=" + green + "&field2=" + orange + "&field3=" + red;
-  if (WiFi.status() == WL_CONNECTED) { // Check if connected to WiFi
-    HTTPClient http;
-    http.begin(url); // Specify the URL
-
-    int httpResponseCode = http.GET(); // Send the GET request
-
-    if (httpResponseCode > 0) {
-      Serial.print("HTTP Response code (sendData): ");
-      Serial.println(httpResponseCode);
-    } else {
-      Serial.print("Error on sending request: ");
-      Serial.println(httpResponseCode);
-    }
-
-    http.end(); // Free resources
-  } else {
-    Serial.println("WiFi Disconnected");
-  }
-}
-
-void setField8(String value, String api) {
-  // Construct and send the HTTP GET request
-  String url = "http://api.thingspeak.com/update?api_key=" + api + "&field8=" + value;
-   if (WiFi.status() == WL_CONNECTED) { // Check if connected to WiFi
-    HTTPClient http;
-    http.begin(url); // Specify the URL
-
-    int httpResponseCode = http.GET(); // Send the GET request
-
-    if (httpResponseCode > 0) {
-      Serial.print("HTTP Response code (setField8): ");
-      Serial.println(httpResponseCode);
-    } else {
-      Serial.print("Error on sending request: ");
-      Serial.println(httpResponseCode);
-    }
-
-    http.end(); // Free resources
-  } else {
-    Serial.println("WiFi Disconnected");
-  }
-
-  delay(2000);
+  setField8(0); // initially set field8 value to 0
 }
 
 void controlTrafficLight(String state) {
-  if (state == "green") {
+  if (state == "red") {
+    Serial.println("Red Light ON");
+    digitalWrite(redLED, HIGH);
+    digitalWrite(greenLED, LOW);
+    digitalWrite(yellowLED, LOW);
+  } else if (state == "green") {
+    Serial.println("Green Light ON");
+    digitalWrite(redLED, LOW);
     digitalWrite(greenLED, HIGH);
     digitalWrite(yellowLED, LOW);
-    digitalWrite(redLED, LOW);
   } else if (state == "orange") {
+    Serial.println("Orange Light ON");
+    digitalWrite(redLED, LOW);
     digitalWrite(greenLED, LOW);
     digitalWrite(yellowLED, HIGH);
-    digitalWrite(redLED, LOW);
-  } else if (state == "red") {
-    digitalWrite(greenLED, LOW);
-    digitalWrite(yellowLED, LOW);
-    digitalWrite(redLED, HIGH);
   }
 }
 
-int getField8(String api) {
-  String url = "http://api.thingspeak.com/channels/2704086/fields/8.json?api_key=" + api + "&results=1";
-  HTTPClient http;
-  http.begin(url); // Specify the URL
+int getField8() {
+  String url = "http://api.thingspeak.com/channels/" + channel_id + "/fields/8/last?api_key=" + read_api_key;
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(url);
+    int httpResponseCode = http.GET();
 
-  int httpResponseCode = http.GET(); // Send the GET request
+    if (httpResponseCode > 0) {
+      String payload = http.getString();
+      Serial.print("Field 8 Value: ");
+      Serial.println(payload);
+      http.end();
+      delay(100); // Delay to stabilize communication
+      return payload.toInt();
+    } else {
+      Serial.println("Error reading ThingSpeak Channel");
+      http.end();
+      delay(100); // Delay to handle failed read
+      return -1;
+    }
+  }
+  return -1;
+}
 
-  if (httpResponseCode == 200) {
-    String payload = http.getString();
-    Serial.println("JSON Response: ");
-    Serial.println(payload);  // Print the full response
+void setField8(int value) {
+  unsigned long currentMillis = millis();
 
-    // Call helper functions to parse the JSON and extract 'field8' value
-    String feedsSection = extractFeedsSection(payload);
-    int field8Value = extractField8Value(feedsSection);
-    
-    return field8Value;
+  // Throttle updates to avoid flooding ThingSpeak
+  String url = "http://api.thingspeak.com/update?api_key=" + api + "&field8=" + String(value);
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(url);
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0) {
+      Serial.print("Updated Field 8 to: ");
+      Serial.println(value);
+      delay(500); // Allow time for the ThingSpeak channel to process the update
+    } else {
+      Serial.println("Error updating Field 8");
+      delay(500); // Handle error gracefully with a delay
+    }
+    http.end();
   } else {
-    Serial.print("Error on sending request: ");
-    Serial.println(httpResponseCode);
-    return -1;  // Return -1 if request fails
+    Serial.println("WiFi Disconnected");
   }
-
-  http.end(); // Free resources
 }
-
-// Function to extract the 'feeds' section from the JSON response
-String extractFeedsSection(String payload) {
-  int startIdx = payload.indexOf("\"feeds\":[");
-  int endIdx = payload.indexOf("]}", startIdx); // Closing braces for the feeds array
-  if (startIdx == -1 || endIdx == -1) {
-    Serial.println("Error: 'feeds' section not found.");
-    return "";  // Return empty if 'feeds' section is not found
-  }
-  return payload.substring(startIdx + 8, endIdx + 1); // Extract the feeds section
-}
-
-// Function to extract the 'field8' value from the 'feeds' section
-int extractField8Value(String feedsSection) {
-  int field8Pos = feedsSection.indexOf("\"field8\":\"");
-  if (field8Pos == -1) {
-    Serial.println("Error: 'field8' value not found.");
-    return -1; // Return -1 if 'field8' is not found
-  }
-  String field8String = feedsSection.substring(field8Pos + 10, field8Pos + 11); // Extract "1" or "0"
-  return field8String.toInt();  // Convert to integer and return
-}
-
-long lastField8Update = 0;
-long lastCycleUpdate = 0;
-const long field8Interval = 1 * 60 * 1000;  // 1 minute (60 seconds)
-const long field8Duration = 20 * 1000;      // 20 seconds
-bool field8Active = false;
 
 void loop() {
-  unsigned long currentTime = millis();  // Get the current time in milliseconds
+  unsigned long currentMillis = millis();
 
-  if (currentTime - lastField8Update >= field8Interval && !field8Active) {
-    setField8("1", api);  // Activate Field 8
-    field8Active = true;
-    lastField8Update = currentTime;
-    Serial.println("Field 8 activated");
-  }
-
-  // Check if Field 8 has been active for 1 minute, then deactivate it
-  if (field8Active && currentTime - lastField8Update >= field8Duration) {
-    setField8("0", api);  // Deactivate Field 8
-    field8Active = false;
-    lastField8Update = currentTime;
-    Serial.println("Field 8 deactivated");
-  }
-
-  // Get the current value of Field 8
-  int field8Value = getField8(sec_api);  
-  Serial.print("Current Field 8 value: ");
-  Serial.println(field8Value);
-
-  // Override normal traffic light behavior if Field 8 is active
-  if (field8Value == 1) {
-    controlTrafficLight("orange");
-    sendData("0", "1", "0");  // Send data for orange light
-  } else {
-    // Normal traffic light behavior
-    if (currentTime - lastCycleUpdate >= 20000) {  // 20 seconds per light
-      controlTrafficLight("red");
-      sendData("0", "0", "1");  // Send data for red light
-      delay(30000);
-
-      controlTrafficLight("green");
-      sendData("1", "0", "0");  // Send data for green light
-      delay(30000);
-
-      controlTrafficLight("orange");
-      sendData("0", "1", "0");  // Send data for orange light
-      delay(20000);
-
-      lastCycleUpdate = currentTime;  // Update the last cycle time
+  // Periodically check ThingSpeak field
+  if (currentMillis - lastCheckMillis >= checkInterval) {
+    lastCheckMillis = currentMillis;
+    int fieldValue = getField8();
+    if (fieldValue == 1 && !alertMode) {
+      alertMode = true;
+      alertStartTime = currentMillis; // Start alert mode
+      Serial.println("Entered Alert Mode via ThingSpeak!");
     }
+  }
+
+  // Check if 10 minutes have passed in order to update Field 8 value
+  if (currentMillis - previousUpdateMillis >= updateInterval) {
+    previousUpdateMillis = currentMillis; // Reset the timer
+    setField8(1); // Change field 8 value to 1 to start alert mode
+    alertStartTime = currentMillis; // keep the time the alert mote started
+    alertMode = true; // start alert mode
+    Serial.println("Alert mode started.");
+  }
+
+  // // Check for keystroke to enter alert mode
+  // if (Serial.available() > 0) {
+  //   char input = Serial.read();
+  //   if (input == 'e' && !alertMode) {
+  //     alertMode = true;
+  //     alertStartTime = currentMillis; // Start alert mode
+  //     setField8(1); // Update field8 to 1
+  //     Serial.println("Entered Alert Mode via Keystroke!");
+  //   }
+  // }
+
+  // Handle alert mode
+  if (alertMode) {
+    controlTrafficLight("orange"); // turn orange light mode
+    delay(20000); // keep the orange light on for 20 seconds
+    alertMode = false; // Exit alert mode
+    setField8(0);      // Reset field8 value to 0
+    Serial.println("Exiting Alert Mode");
+    return; // Skip normal light cycle
+  }
+
+  // Normal light cycle
+  if (currentLight == 0 && currentMillis - previousMillis >= redTime) {
+    currentLight = 1; // Red to Green
+    previousMillis = currentMillis;
+    controlTrafficLight("red");
+  } else if (currentLight == 1 && currentMillis - previousMillis >= greenTime) {
+    currentLight = 2; // Green to Orange
+    previousMillis = currentMillis;
+    controlTrafficLight("green");
+  } else if (currentLight == 2 && currentMillis - previousMillis >= orangeTime) {
+    currentLight = 0; // Orange to Red
+    previousMillis = currentMillis;
+    controlTrafficLight("orange");
   }
 }
