@@ -1,11 +1,12 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Tsomi";
-const char* password = "klapatsimpas123";
-String api = "JEBAFQ64U1HT0JEQ"; // Write Thingspeak Channel API Key
-String read_api_key = "IGWF3BB80UPS74HJ"; // Read API key for ThingSpeak
-String channel_id = "2704086"; // Channel ID for ThingSpeak
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+String api = "YOUR_WRITE_API_KEY"; // Write Thingspeak Channel API Key
+String read_api_key = "YOUR_READ_API_KEY"; // Read API key for ThingSpeak
+String sec_api = "OTHER_WRITE_API_KEY"; // Write Thingspeak Channel API Key for the other app
+String channel_id = "YOUR_CHANNEL_ID"; // Channel ID for ThingSpeak
 
 // LED Pins
 int greenLED = 14;
@@ -44,7 +45,8 @@ void setup() {
   
   delay(2000);
 
-  setField8(0); // Initially set field8 value to 0
+  setField8(0, sec_api);
+  setField8(0, api); // Initially set field8 value to 0
   delay(15000); //! Overcome Thingspeak API limit
   
   // Initialize first stage of traffic light cycle
@@ -116,7 +118,7 @@ void sendData(String green, String orange, String red) {
   }
 }
 
-void setField8(int value) {
+void setField8(int value, String api) {
   unsigned long currentMillis = millis();
 
   String url = "http://api.thingspeak.com/update?api_key=" + api + "&field8=" + String(value);
