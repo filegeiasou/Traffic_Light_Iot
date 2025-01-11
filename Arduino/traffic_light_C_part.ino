@@ -2,7 +2,7 @@
 #include <HTTPClient.h>
 
 const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_PASSWORD";
+const char* password = "YOUR_WIFI_PASSWORD";
 String api = "YOUR_WRITE_API_KEY"; // Write Thingspeak Channel API Key
 String read_api_key = "YOUR_READ_API_KEY"; // Read API key for ThingSpeak
 String sec_api = "OTHER_WRITE_API_KEY"; // Write Thingspeak Channel API Key for the other app
@@ -19,13 +19,13 @@ unsigned long greenTime = 30000;     // Green light duration time
 unsigned long orangeTime = 20000;    // Orange light duration time
 
 // Variables
-unsigned long previousMillis = 0;         // Tracks last light change
-unsigned long previousUpdateMillis = 0;
-unsigned long previousFieldCheckMillis = 0;
-unsigned long updateInterval = 600000;    // Update interval (every 10 minutes)
-unsigned long alertDuration = 60000;
-unsigned long checkInterval = 5000;       // Read ThingSpeak Channel interval
-int currentLight = 0;                     // 0 = Red, 1 = Green, 2 = Orange
+unsigned long previousMillis = 0;            // used to track last light for the normal traffic light cycle
+unsigned long previousUpdateMillis = 0;      // used to track update timer
+unsigned long previousFieldCheckMillis = 0;  // used to track field 8 value check timer
+unsigned long updateInterval = 600000;       // Update interval (every 10 minutes)
+unsigned long alertDuration = 60000;         // Alert mode duration (1 minute)
+unsigned long checkInterval = 5000;          // Read ThingSpeak Channel interval
+int currentLight = 0;                        // used to control traffic light cycles. 0 = Red, 1 = Green, 2 = Orange
 
 void setup() {
   Serial.begin(115200);
@@ -45,7 +45,8 @@ void setup() {
   
   delay(2000);
 
-  setField8(0); // Initially set field8 value to 0
+  setField8(0, sec_api);
+  setField8(0, api); // Initially set field8 value to 0
   delay(15000); //! Overcome Thingspeak API limit
   
   // Initialize first stage of traffic light cycle
@@ -82,10 +83,9 @@ int getField8() {
     int httpResponseCode = http.GET();
 
     if (httpResponseCode > 0) {
-      Serial.print("Data read from ThingSpeak");
       String payload = http.getString();
       http.end();
-      delay(100); // Delay to stabilize communication
+      delay(100);
       return payload.toInt();
     } else {
       Serial.println("Error reading ThingSpeak Channel");
@@ -106,7 +106,7 @@ void sendData(String green, String orange, String red) {
     int httpResponseCode = http.GET(); // Send the GET request
 
     if (httpResponseCode > 0) {
-      Serial.print("Data sent to ThingSpeak");
+      Serial.print("Data sent to ThingSpeak\n");
     } else {
       Serial.print("Error on sending request: ");
       Serial.println(httpResponseCode);
@@ -118,7 +118,7 @@ void sendData(String green, String orange, String red) {
   }
 }
 
-void setField8(int value) {
+void setField8(int value, String api) {
   unsigned long currentMillis = millis();
 
   String url = "http://api.thingspeak.com/update?api_key=" + api + "&field8=" + String(value);
@@ -144,24 +144,22 @@ void setField8(int value) {
 void loop() {
   unsigned long currentMillis = millis();
 
-  // // Update field8 every 10 minutes
-  // if (currentMillis - previousUpdateMillis >= updateInterval) {
-  //   previousUpdateMillis = currentMillis;
-
-  //   // Set field8 to 1 or 0 (depending on your logic)
-  //   setField8(1); // Or setField8(0) depending on the condition
-  //   // delay(5000);
-
-  //   Serial.println("Field 8 has been updated");
-  // }
-
-  // Check for keystroke to enter alert mode
-  if (Serial.available() > 0) {
-    char input = Serial.read();
-    if (input == 'e' && !alertMode) {
-      setField8(1); // Update field8 to 1
-    }
+  // Update field8 every 10 minutes
+  if (currentMillis - previousUpdateMillis >= updateInterval) {
+    previousUpdateMillis = currentMillis;
+    // Set field8 to 1 or 0 (depending on your logic)
+    setField8(1); // Or setField8(0) depending on the condition
+    delay(1000);
+    Serial.println("Field 8 has been updated");
   }
+
+  // // Check for keystroke to enter alert mode
+  // if (Serial.available() > 0) {
+  //   char input = Serial.read();
+  //   if (input == 'e') {
+  //     setField8(1); // Update field8 to 1
+  //   }
+  // }
 
   // Check field8 value at the specified interval
   if (currentMillis - previousFieldCheckMillis >= checkInterval) {
@@ -174,14 +172,12 @@ void loop() {
     // If the field8 value is 1, enter alert mode
     if (field8Value == 1) {
       Serial.println();
-      // alertMode = true;
       Serial.println("Field 8 value detected. Value changed to 1. Entering alert mode...");
       controlTrafficLight("orange"); // turn on orange light
       delay(15000); //! Overcome ThingSpeak API limit
       sendData("0", "1", "0");
       delay(alertDuration);
       Serial.println("Alert mode duration ended");
-      alertMode = false;
       setField8(0);  // Reset field8 to 0 after alert mode ends
       delay(15000);  //! Overcome ThingSpeak API limit
       return;  // Skip normal light cycle if in alert mode
