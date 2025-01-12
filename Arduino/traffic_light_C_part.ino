@@ -107,6 +107,7 @@ void sendData(String green, String orange, String red) {
 
     if (httpResponseCode > 0) {
       Serial.print("Data sent to ThingSpeak\n");
+      Serial.println(httpResponseCode);
     } else {
       Serial.print("Error on sending request: ");
       Serial.println(httpResponseCode);
@@ -153,13 +154,13 @@ void loop() {
     Serial.println("Field 8 has been updated");
   }
 
-  // // Check for keystroke to enter alert mode
-  // if (Serial.available() > 0) {
-  //   char input = Serial.read();
-  //   if (input == 'e') {
-  //     setField8(1); // Update field8 to 1
-  //   }
-  // }
+  // Check for keystroke to enter alert mode
+  if (Serial.available() > 0) {
+    char input = Serial.read();
+    if (input == 'e') {
+      setField8(1); // Update field8 to 1
+    }
+  }
 
   // Check field8 value at the specified interval
   if (currentMillis - previousFieldCheckMillis >= checkInterval) {
